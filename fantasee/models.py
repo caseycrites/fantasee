@@ -7,17 +7,9 @@ import requests
 def sanitize_text(text):
     return text.replace(u'\xa0', u'@').replace(', ', ',')
 
-class ESPNEntity(object):
-    _BASE_URL = 'http://games.espn.go.com'
-    _SPORTS = {
-        'baseball': 'flb',
-        'basketball': 'fba',
-        'football': 'ffl',
-        'hockey': 'fhl'
-    }
-    dom_location = None
+# TODO Give these entities a map and let them build themselves from it.
 
-class Player(ESPNEntity):
+class Player(object):
     dom_location = 'td.playertablePlayerName'
     name = None
     team = None
@@ -42,7 +34,7 @@ class Player(ESPNEntity):
             self.name, ', '.join(self.positions), self.team
         )
 
-class FantasyTeam(ESPNEntity):
+class Team(object):
     dom_location = 'table.playerTableTable'
     name = None
     players = []
@@ -66,10 +58,15 @@ class FantasyTeam(ESPNEntity):
     def __str__(self):
         return '%s has %d players' % (self.name, len(self.players))
 
-class League(ESPNEntity):
+class League(object):
     league_id = None
     sport = None
     teams = []
+
+    def __init__(self, sport, league_id, site):
+        self.sport = sport
+        self.league_id = league_id
+        self.site = site
 
     @classmethod
     def from_sport_and_id(cls, sport, league_id):
@@ -81,8 +78,8 @@ class League(ESPNEntity):
         ))
         soup = BeautifulSoup(resp.text)
         league.teams = [
-            FantasyTeam.from_soup(markup) for markup
-            in soup.select(FantasyTeam.dom_location)
+            Team.from_soup(markup) for markup
+            in soup.select(Team.dom_location)
         ]
         return league
 
