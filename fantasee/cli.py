@@ -4,22 +4,30 @@ import yaml
 
 from models import FantasyLeague
 
-def _load_config():
-    config = yaml.load('config.yaml')
+# subparsers
+# - league name
+#   - stuff
+
+# TODO Optional locations for the config and some defaults
+config = yaml.load(open('config.yaml'))
+
+def _add_subparsers(subparsers):
+    for key, value in config.items():
+        parser = subparsers.add_parser(key)
 
 def _init():
-    _load_config()
     parser = argparse.ArgumentParser('Get ESPN fantasy sports info.')
-    parser.add_argument(
-        'sport', help='The sport you want.', choices=FantasyLeague._SPORTS.keys()
-    )
-    parser.add_argument('league_id', help='Your public league id.')
+    subparsers = parser.add_subparsers(help='Available Leagues', dest='league')
+    _add_subparsers(subparsers)
     return parser.parse_args()
 
 def main():
     args = _init()
-    league = FantasyLeague.from_sport_and_id(args.sport, args.league_id)
-    print league
+    league_data = config[args.league]
+    league = FantasyLeague.from_sport_and_id(
+        league_data['sport'], league_data['id']
+    )
+    print 'Retrieved data for league %s' % league.league_id
 
 if __name__ == '__main__':
     sys.exit(main())
