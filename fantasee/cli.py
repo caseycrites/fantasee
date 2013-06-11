@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 from bs4 import BeautifulSoup
 import requests
@@ -17,7 +18,8 @@ def init():
     parser.add_argument('league_id', help='Your public league id.')
     return parser.parse_args()
 
-def main(args):
+def main():
+    args = init()
     resp = requests.get(_URL_FORMAT % (
         _LEAGUE_ABBRS[args.sport], args.league_id)
     )
@@ -31,4 +33,4 @@ def main(args):
             print injured_player
 
 if __name__ == '__main__':
-    main(init())
+    sys.exit(main())

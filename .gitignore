@@ -1,1 +1,5 @@
 *.pyc
+build/
+dist/
+fantasee.egg-info/
+config.yaml
