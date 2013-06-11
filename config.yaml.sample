@@ -1,0 +1,8 @@
+league1:
+    id: 12345
+    sport: baseball
+    name: my team
+league2:
+    id: 23456
+    sport: basketball
+    name: my other team

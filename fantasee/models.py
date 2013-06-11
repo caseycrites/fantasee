@@ -66,7 +66,7 @@ class FantasyTeam(ESPNEntity):
     def __str__(self):
         return '%s has %d players' % (self.name, len(self.players))
 
-class FantasyLeague(ESPNEntity):
+class League(ESPNEntity):
     league_id = None
     sport = None
     teams = []

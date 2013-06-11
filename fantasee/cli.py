@@ -2,11 +2,14 @@ import argparse
 import sys
 import yaml
 
-from models import FantasyLeague
+from models import League
 
 # subparsers
 # - league name
-#   - stuff
+#   - team
+#   - trade
+#   - counts
+#   - free agents
 
 # TODO Optional locations for the config and some defaults
 config = yaml.load(open('config.yaml'))
@@ -24,9 +27,7 @@ def _init():
 def main():
     args = _init()
     league_data = config[args.league]
-    league = FantasyLeague.from_sport_and_id(
-        league_data['sport'], league_data['id']
-    )
+    league = League.from_sport_and_id(league_data['sport'], league_data['id'])
     print 'Retrieved data for league %s' % league.league_id
 
 if __name__ == '__main__':
