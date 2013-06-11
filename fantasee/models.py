@@ -1,10 +1,24 @@
 from collections import Counter
 import re
 
+from bs4 import BeautifulSoup
+import requests
+
 def sanitize_text(text):
     return text.replace(u'\xa0', u'@').replace(', ', ',')
 
-class Player(object):
+class ESPNEntity(object):
+    _BASE_URL = 'http://games.espn.go.com'
+    _SPORTS = {
+        'baseball': 'flb',
+        'basketball': 'fba',
+        'football': 'ffl',
+        'hockey': 'fhl'
+    }
+    dom_location = None
+
+class Player(ESPNEntity):
+    dom_location = 'td.playertablePlayerName'
     name = None
     team = None
     injured = False
@@ -28,7 +42,8 @@ class Player(object):
             self.name, ', '.join(self.positions), self.team
         )
 
-class FantasyTeam(object):
+class FantasyTeam(ESPNEntity):
+    dom_location = 'table.playerTableTable'
     name = None
     players = []
 
@@ -38,7 +53,7 @@ class FantasyTeam(object):
         team.name = soup.select('tr.playerTableBgRowHead > th > a')[0].text
         team.players = [
             Player.from_soup(markup) for markup in
-            soup.select('td.playertablePlayerName')
+            soup.select(Player.dom_location)
         ]
         return team
 
@@ -50,3 +65,28 @@ class FantasyTeam(object):
 
     def __str__(self):
         return '%s has %d players' % (self.name, len(self.players))
+
+class FantasyLeague(ESPNEntity):
+    league_id = None
+    sport = None
+    teams = []
+
+    @classmethod
+    def from_sport_and_id(cls, sport, league_id):
+        league = cls()
+        league.league_id = league_id
+        league.sport = sport
+        resp = requests.get('%s/%s/leaguerosters?leagueId=%s' % (
+            league._BASE_URL, league._SPORTS[sport], league.league_id
+        ))
+        soup = BeautifulSoup(resp.text)
+        league.teams = [
+            FantasyTeam.from_soup(markup) for markup
+            in soup.select(FantasyTeam.dom_location)
+        ]
+        return league
+
+    def __str__(self):
+        return '%s is a %d-team %s league' % (
+            self.league_id, len(self.teams), self.sport
+        )
